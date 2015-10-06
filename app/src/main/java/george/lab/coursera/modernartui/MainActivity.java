@@ -1,7 +1,9 @@
 package george.lab.coursera.modernartui;
 
+import android.app.FragmentManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -39,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     int R1temp = R1Color;
     int R2temp = R2Color;
     int R3temp = R3Color;
+
+    private android.support.v4.app.FragmentManager fragmentManager = getSupportFragmentManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,20 +110,32 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.MoreInfoOptionMenu:
                 // TODO open dialog box
+                MoreInfoFragDialog dialog = new MoreInfoFragDialog();
+                dialog.show(fragmentManager, "more_info_dialog" );
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    public int colorRotate( int color, int step) {
+        // assume we've received a specific color (0-255) and a step
+        return (color + step) % 256;
+    }
+
+    private int circularShift( int bits, int k ){
+        return (bits >>> k) | (bits << (Integer.SIZE - k));
+    }
+
     public void updateColors(int step) {
-        L1temp =cycleColor(L1Color,step);
-        L2temp =cycleColor(L2Color,step);
-        L3temp =cycleColor(L3Color,step);
-        L4temp =cycleColor(L4Color,step);
-        R1temp =cycleColor(R1Color,step);
-        R2temp =cycleColor(R2Color,step);
-        R3temp =cycleColor(R3Color,step);
+        //need to preserve temporary color in case we want an alpha shift
+        L1temp =circularShift(L1Color, step);
+        L2temp =circularShift(L2Color, step);
+        L3temp =circularShift(L3Color, step);
+        L4temp =circularShift(L4Color, step);
+        R1temp =circularShift(R1Color, step);
+        R2temp =circularShift(R2Color, step);
+        R3temp =circularShift(R3Color, step);
 
         tvL1.setBackgroundColor(L1temp);
         tvL2.setBackgroundColor(L2temp);
@@ -139,15 +155,6 @@ public class MainActivity extends AppCompatActivity {
         tvR1.setBackgroundColor(setOpacity(R1temp, newAlpha));
         tvR2.setBackgroundColor(setOpacity(R2temp, newAlpha));
         tvR3.setBackgroundColor(setOpacity(R3temp, newAlpha));
-    }
-
-    public int cycleColor(int curColor, int step) {
-        int alpha = Color.alpha(curColor);
-        int newColor = (curColor+step) % 255;  // add value to existing color, wrap back around if too big
-        int red = (newColor>>16)&0xFF;
-        int green = (newColor>>8)&0xFF;
-        int blue = (newColor)&0xFF;
-        return Color.argb(alpha,red, green, blue);
     }
 
     public int setOpacity(int curColor, int alpha) {
